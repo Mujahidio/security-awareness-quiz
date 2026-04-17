@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Security Awareness Quiz | Phishing & Social Engineering</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #0f172a; color: #e2e8f0; min-height: 100vh; }
+
+  .app { max-width: 780px; margin: 0 auto; padding: 2rem 1.25rem 4rem; }
+
+  /* Header */
+  .header { text-align: center; margin-bottom: 2.5rem; }
+  .header-badge { display: inline-flex; align-items: center; gap: 6px; background: #1e293b; border: 1px solid #334155; border-radius: 99px; padding: 6px 14px; font-size: 12px; color: #94a3b8; margin-bottom: 1rem; }
+  .dot { width: 7px; height: 7px; background: #22d3ee; border-radius: 50%; }
+  .header h1 { font-size: 2rem; font-weight: 700; color: #f1f5f9; line-height: 1.2; }
+  .header p { color: #94a3b8; margin-top: 0.5rem; font-size: 0.95rem; }
+
+  /* Difficulty selector */
+  .difficulty-bar { display: flex; gap: 8px; justify-content: center; margin-bottom: 2rem; flex-wrap: wrap; }
+  .diff-btn { padding: 6px 18px; border-radius: 99px; border: 1px solid #334155; background: transparent; color: #94a3b8; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+  .diff-btn:hover { border-color: #22d3ee; color: #22d3ee; }
+  .diff-btn.active { background: #164e63; border-color: #22d3ee; color: #22d3ee; }
+
+  /* Progress */
+  .progress-wrap { margin-bottom: 1.5rem; }
+  .progress-meta { display: flex; justify-content: space-between; font-size: 13px; color: #64748b; margin-bottom: 6px; }
+  .progress-bar { height: 4px; background: #1e293b; border-radius: 2px; overflow: hidden; }
+  .progress-fill { height: 100%; background: linear-gradient(90deg, #0ea5e9, #22d3ee); border-radius: 2px; transition: width 0.4s ease; }
+
+  /* Stats row */
+  .stats-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .stat-card { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 0.75rem 1rem; text-align: center; }
+  .stat-val { font-size: 1.5rem; font-weight: 700; }
+  .stat-val.green { color: #4ade80; }
+  .stat-val.red { color: #f87171; }
+  .stat-val.blue { color: #38bdf8; }
+  .stat-label { font-size: 11px; color: #64748b; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  /* Question card */
+  .question-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 1.75rem; margin-bottom: 1.25rem; }
+  .q-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+  .q-category { font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; color: #22d3ee; font-weight: 600; }
+  .q-diff { font-size: 11px; padding: 3px 10px; border-radius: 99px; }
+  .q-diff.easy { background: #14532d; color: #86efac; }
+  .q-diff.medium { background: #78350f; color: #fcd34d; }
+  .q-diff.hard { background: #7f1d1d; color: #fca5a5; }
+  .q-text { font-size: 1.05rem; line-height: 1.65; color: #e2e8f0; margin-bottom: 1.25rem; }
+  .q-hint { font-size: 12px; color: #64748b; border-left: 2px solid #334155; padding-left: 10px; margin-bottom: 1.25rem; font-style: italic; }
+
+  /* Options */
+  .options { display: flex; flex-direction: column; gap: 10px; }
+  .option-btn { text-align: left; padding: 0.875rem 1.1rem; border-radius: 10px; border: 1px solid #334155; background: #0f172a; color: #cbd5e1; font-size: 0.93rem; cursor: pointer; transition: all 0.18s; display: flex; align-items: flex-start; gap: 10px; }
+  .option-btn:hover:not(:disabled) { border-color: #38bdf8; color: #e2e8f0; background: #0c2b45; }
+  .option-btn:disabled { cursor: default; }
+  .option-btn.correct { border-color: #22c55e; background: #052e16; color: #86efac; }
+  .option-btn.wrong { border-color: #ef4444; background: #2d0a0a; color: #fca5a5; }
+  .option-btn.reveal { border-color: #22c55e; background: #052e16; color: #86efac; }
+  .opt-letter { width: 22px; height: 22px; border-radius: 50%; background: #334155; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+  .option-btn.correct .opt-letter { background: #22c55e; color: #052e16; }
+  .option-btn.wrong .opt-letter { background: #ef4444; color: #2d0a0a; }
+  .option-btn.reveal .opt-letter { background: #22c55e; color: #052e16; }
+
+  /* Explanation */
+  .explanation { margin-top: 1rem; padding: 1rem 1.25rem; border-radius: 10px; font-size: 0.88rem; line-height: 1.6; border-left: 3px solid; display: none; }
+  .explanation.show { display: block; }
+  .explanation.correct-exp { background: #052e16; border-color: #22c55e; color: #86efac; }
+  .explanation.wrong-exp { background: #2d0a0a; border-color: #ef4444; color: #fca5a5; }
+  .exp-label { font-weight: 700; font-size: 11px; text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 4px; }
+
+  /* Nav */
+  .nav { display: flex; justify-content: flex-end; gap: 10px; margin-top: 1rem; }
+  .btn { padding: 0.65rem 1.5rem; border-radius: 8px; font-size: 0.9rem; cursor: pointer; border: none; font-weight: 600; transition: all 0.18s; }
+  .btn-primary { background: #0ea5e9; color: #fff; }
+  .btn-primary:hover { background: #0284c7; }
+  .btn-primary:disabled { opacity: 0.4; cursor: default; }
+  .btn-outline { background: transparent; color: #94a3b8; border: 1px solid #334155; }
+  .btn-outline:hover { border-color: #94a3b8; color: #e2e8f0; }
+
+  /* Results */
+  .results { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 2rem; text-align: center; display: none; }
+  .results.show { display: block; }
+  .result-score { font-size: 4rem; font-weight: 800; margin: 0.5rem 0; }
+  .result-score.excellent { color: #4ade80; }
+  .result-score.good { color: #fbbf24; }
+  .result-score.poor { color: #f87171; }
+  .result-label { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.25rem; }
+  .result-sub { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; }
+  .result-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 1.5rem; }
+  .result-tip { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 1rem; text-align: left; margin-top: 1rem; font-size: 0.87rem; color: #94a3b8; line-height: 1.6; }
+  .result-tip strong { color: #e2e8f0; }
+
+  /* Screen states */
+  .screen { display: none; }
+  .screen.active { display: block; }
+
+  /* Start screen */
+  .start-card { background: #1e293b; border: 1px solid #334155; border-radius: 16px; padding: 2rem; margin-top: 1rem; }
+  .start-card h2 { font-size: 1.1rem; color: #f1f5f9; margin-bottom: 0.75rem; }
+  .start-card p { color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin-bottom: 1.25rem; }
+  .topic-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 1.5rem; }
+  .topic-pill { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 8px 12px; font-size: 12px; color: #94a3b8; display: flex; align-items: center; gap: 6px; }
+  .topic-icon { font-size: 14px; }
+  .start-btn { width: 100%; padding: 0.875rem; background: #0ea5e9; color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.2s; }
+  .start-btn:hover { background: #0284c7; }
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="header-badge"><span class="dot"></span> Security Awareness Training</div>
+    <h1>Phishing & Social Engineering Quiz</h1>
+    <p>Test your ability to identify cyber threats and protect your organization</p>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="screen-start" class="screen active">
+    <div class="difficulty-bar">
+      <button class="diff-btn active" onclick="setDiff('all')">All Levels</button>
+      <button class="diff-btn" onclick="setDiff('easy')">Beginner</button>
+      <button class="diff-btn" onclick="setDiff('medium')">Intermediate</button>
+      <button class="diff-btn" onclick="setDiff('hard')">Advanced</button>
+    </div>
+    <div class="start-card">
+      <h2>What you'll be tested on:</h2>
+      <p>This quiz covers real-world cyber attack scenarios that target employees and organizations. Each question reflects tactics used by actual threat actors.</p>
+      <div class="topic-grid">
+        <div class="topic-pill"><span class="topic-icon">🎣</span> Phishing emails</div>
+        <div class="topic-pill"><span class="topic-icon">📞</span> Vishing (voice)</div>
+        <div class="topic-pill"><span class="topic-icon">💬</span> Smishing (SMS)</div>
+        <div class="topic-pill"><span class="topic-icon">🎭</span> Pretexting</div>
+        <div class="topic-pill"><span class="topic-icon">🔗</span> Malicious links</div>
+        <div class="topic-pill"><span class="topic-icon">🏢</span> Tailgating</div>
+        <div class="topic-pill"><span class="topic-icon">🔐</span> Password hygiene</div>
+        <div class="topic-pill"><span class="topic-icon">☁️</span> Cloud & MFA</div>
+      </div>
+      <button class="start-btn" onclick="startQuiz()">Start Assessment →</button>
+    </div>
+  </div>
+
+  <!-- Quiz Screen -->
+  <div id="screen-quiz" class="screen">
+    <div class="progress-wrap">
+      <div class="progress-meta">
+        <span id="q-counter">Question 1 of 15</span>
+        <span id="q-score-inline">Score: 0</span>
+      </div>
+      <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val green" id="stat-correct">0</div><div class="stat-label">Correct</div></div>
+      <div class="stat-card"><div class="stat-val red" id="stat-wrong">0</div><div class="stat-label">Incorrect</div></div>
+      <div class="stat-card"><div class="stat-val blue" id="stat-streak">0</div><div class="stat-label">Streak</div></div>
+    </div>
+    <div class="question-card" id="question-card">
+      <div class="q-meta">
+        <span class="q-category" id="q-category">Phishing</span>
+        <span class="q-diff" id="q-diff">Easy</span>
+      </div>
+      <p class="q-text" id="q-text"></p>
+      <p class="q-hint" id="q-hint"></p>
+      <div class="options" id="options"></div>
+      <div class="explanation" id="explanation"></div>
+    </div>
+    <div class="nav">
+      <button class="btn btn-outline" onclick="restartQuiz()">Restart</button>
+      <button class="btn btn-primary" id="next-btn" onclick="nextQuestion()" disabled>Next →</button>
+    </div>
+  </div>
+
+  <!-- Results Screen -->
+  <div id="screen-results" class="screen">
+    <div class="results show">
+      <div style="font-size:3rem;margin-bottom:0.5rem">🛡️</div>
+      <div class="result-label" id="result-label">Assessment Complete</div>
+      <div class="result-score" id="result-score">0%</div>
+      <div class="result-sub" id="result-sub"></div>
+      <div class="result-grid">
+        <div class="stat-card"><div class="stat-val green" id="r-correct">0</div><div class="stat-label">Correct</div></div>
+        <div class="stat-card"><div class="stat-val red" id="r-wrong">0</div><div class="stat-label">Incorrect</div></div>
+        <div class="stat-card"><div class="stat-val blue" id="r-total">0</div><div class="stat-label">Total</div></div>
+      </div>
+      <div class="result-tip" id="result-tip"></div>
+      <button class="start-btn" style="margin-top:1.25rem" onclick="restartQuiz()">Retake Quiz</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const ALL_QUESTIONS = [
+  {
+    category: "Phishing",
+    difficulty: "easy",
+    question: "You receive an email from 'support@paypa1.com' saying your account has been locked and you need to verify your details immediately. What should you do?",
+    hint: "Look closely at the sender's email domain.",
+    options: [
+      "Click the link in the email and enter your credentials",
+      "Reply to the email asking for more information",
+      "Ignore it — the misspelled domain (paypa1 vs paypal) is a clear phishing indicator",
+      "Forward it to your colleagues to warn them"
+    ],
+    correct: 2,
+    explanation: "The domain 'paypa1.com' replaces the letter 'l' with the number '1' — a classic typosquatting technique. Always verify sender domains carefully. Legitimate companies will never ask for credentials via email."
+  },
+  {
+    category: "Phishing",
+    difficulty: "medium",
+    question: "An email appears to come from your company's CEO asking you to urgently wire $15,000 to a new vendor before end of business today. The email style matches the CEO's. What is this attack called and what should you do?",
+    hint: "This targets finance teams specifically.",
+    options: [
+      "Reply to the CEO confirming you will process it",
+      "Business Email Compromise (BEC) — verify via a separate phone call to the CEO before acting",
+      "Process it immediately since it came from the CEO's email",
+      "Wait until tomorrow to process it"
+    ],
+    correct: 1,
+    explanation: "This is a Business Email Compromise (BEC) or CEO fraud attack. Attackers spoof or compromise executive emails to authorize fraudulent transfers. Always verify unusual financial requests through a second, independent channel (phone call to a known number)."
+  },
+  {
+    category: "Vishing",
+    difficulty: "easy",
+    question: "You receive a call from someone claiming to be from your IT department. They say they detected a virus on your computer and need your Windows login password to fix it remotely. What do you do?",
+    hint: "Legitimate IT staff have other ways to access systems.",
+    options: [
+      "Provide your password — it's your own IT team",
+      "Refuse — legitimate IT departments never ask for passwords over the phone",
+      "Ask them to send an email first, then provide the password",
+      "Give them a temporary password and change it after"
+    ],
+    correct: 1,
+    explanation: "Legitimate IT staff never ask for your password. They have administrative tools to access systems without your credentials. This is a vishing (voice phishing) attack using pretexting. Hang up and contact IT directly using the official number."
+  },
+  {
+    category: "Smishing",
+    difficulty: "easy",
+    question: "You receive an SMS: 'Your SADAD account has been suspended. Click here to verify: bit.ly/sadad-verify'. What is the biggest red flag?",
+    hint: "Consider the link format.",
+    options: [
+      "The SMS was sent on a weekend",
+      "SADAD doesn't send SMS messages",
+      "Using a shortened URL that hides the real destination",
+      "The message was too short"
+    ],
+    correct: 2,
+    explanation: "Shortened URLs (bit.ly, tinyurl, etc.) are a major red flag in suspicious messages — they hide the real destination. Legitimate banking services use their own branded domains. Never click links in unsolicited SMS messages; go directly to the official app or website."
+  },
+  {
+    category: "Social Engineering",
+    difficulty: "medium",
+    question: "A person in a delivery uniform carrying boxes asks you to hold the office door open for them because their hands are full. You don't recognize them. What should you do?",
+    hint: "This attack has a physical security name.",
+    options: [
+      "Hold the door — it would be rude not to",
+      "Ask them to wait and have reception or security verify their identity",
+      "Let them in but watch them carefully",
+      "Check if they have a delivery badge visible"
+    ],
+    correct: 1,
+    explanation: "This is a tailgating (or piggybacking) attack — using social pressure and appearing harmless to gain unauthorized physical access. Always direct unverified visitors to reception. Uniforms can be easily obtained. Verify first, no exceptions."
+  },
+  {
+    category: "Phishing",
+    difficulty: "hard",
+    question: "You receive a highly targeted email referencing your recent project, your manager's name, and your company's internal tool. It asks you to click a link to review a shared document. This type of attack is called:",
+    hint: "This is more targeted than bulk phishing.",
+    options: [
+      "Whaling",
+      "Spear phishing — targeted at a specific individual using personal details",
+      "Clone phishing",
+      "Pharming"
+    ],
+    correct: 1,
+    explanation: "Spear phishing uses personal, contextual information to appear highly credible. Attackers gather this data from LinkedIn, social media, or breached databases. Unlike mass phishing, spear phishing has a much higher success rate. Always verify document-sharing requests through another channel."
+  },
+  {
+    category: "Password Security",
+    difficulty: "easy",
+    question: "Which of the following is the strongest password?",
+    hint: "Think length vs complexity.",
+    options: [
+      "P@ssw0rd!",
+      "Muhammad1990",
+      "correct-horse-battery-staple-77",
+      "Xk9#mQ2!"
+    ],
+    correct: 2,
+    explanation: "Length beats complexity. 'correct-horse-battery-staple-77' is a passphrase with ~40 characters, making it exponentially harder to brute-force than shorter 'complex' passwords. NIST guidelines now recommend long passphrases over short complex passwords."
+  },
+  {
+    category: "MFA & Authentication",
+    difficulty: "medium",
+    question: "You receive a push notification on your authenticator app asking you to approve a login, but you are not trying to log in anywhere. What should you do?",
+    hint: "This is a known MFA attack technique.",
+    options: [
+      "Approve it — it might be a system update",
+      "Ignore it and it will expire",
+      "Deny it immediately and change your password — this is an MFA fatigue attack",
+      "Approve it since you have MFA enabled so it must be safe"
+    ],
+    correct: 2,
+    explanation: "This is an MFA Fatigue (or MFA Bombing) attack. Attackers who have your password send repeated push notifications hoping you'll approve one out of frustration or confusion. Always deny unexpected MFA requests and change your password immediately — your credentials are likely compromised."
+  },
+  {
+    category: "Social Engineering",
+    difficulty: "medium",
+    question: "A caller claims to be from your bank's fraud department, says they detected suspicious activity, and asks you to confirm your card number to secure your account. They already know your name and partial account details. What do you do?",
+    hint: "The fact they know some details doesn't mean they're legitimate.",
+    options: [
+      "Provide the card number — they already know your other details so they must be real",
+      "Hang up and call the number on the back of your bank card directly",
+      "Ask them to send an email instead",
+      "Give the last 4 digits only"
+    ],
+    correct: 1,
+    explanation: "Attackers can obtain partial personal data from data breaches to appear credible. Always hang up and call the official number printed on your card or the bank's official website — never the number the caller provides. This is called a pretext call."
+  },
+  {
+    category: "Phishing",
+    difficulty: "hard",
+    question: "You visit a website that looks identical to your company's internal portal. The URL shows 'https' and a padlock icon. A colleague warned you the link looked odd. Is the site safe?",
+    hint: "HTTPS does not mean a site is legitimate.",
+    options: [
+      "Yes — the padlock and HTTPS confirm it is secure and legitimate",
+      "Not necessarily — HTTPS only encrypts traffic, it does not verify the site's legitimacy",
+      "Yes — only real companies can get SSL certificates",
+      "No — HTTPS is only for banks"
+    ],
+    correct: 1,
+    explanation: "HTTPS and the padlock only mean the connection is encrypted — not that the site is legitimate. Attackers routinely obtain free SSL certificates (via Let's Encrypt) for phishing domains. Always verify the full URL carefully, not just the padlock."
+  },
+  {
+    category: "Data Protection",
+    difficulty: "medium",
+    question: "A colleague asks you to send them a client's personal data via WhatsApp because 'it's faster.' You work in a regulated Saudi fintech company. What is the correct response?",
+    hint: "Think about PDPL and SAMA regulations.",
+    options: [
+      "Send it — WhatsApp is encrypted end-to-end",
+      "Refuse — personal data must only be shared through approved, secure, and auditable company channels under PDPL",
+      "Send it but delete the message after",
+      "Send only partial data"
+    ],
+    correct: 1,
+    explanation: "Saudi Arabia's Personal Data Protection Law (PDPL) and SAMA CSF require that personal data be handled through approved, auditable channels. WhatsApp is not an approved corporate data channel. Violations can result in regulatory penalties and breach of client trust."
+  },
+  {
+    category: "Incident Response",
+    difficulty: "medium",
+    question: "You accidentally clicked a suspicious link and a file downloaded automatically. You realize it may be malware. What is the FIRST thing you should do?",
+    hint: "Speed and isolation matter.",
+    options: [
+      "Delete the downloaded file and hope for the best",
+      "Restart your computer to clear the threat",
+      "Immediately disconnect from the network and report to your security/IT team",
+      "Run a quick antivirus scan before reporting"
+    ],
+    correct: 2,
+    explanation: "Isolating the device by disconnecting from the network is the first priority — it stops potential lateral movement or data exfiltration. Then report immediately to your security team. Do not restart (some malware activates on reboot) and do not try to self-remediate before reporting."
+  },
+  {
+    category: "Social Engineering",
+    difficulty: "hard",
+    question: "An attacker calls an employee pretending to be an IT auditor from headquarters, citing a fake audit code. They ask the employee to create a temporary admin account for the 'audit.' What technique is being used?",
+    hint: "This involves fabricating a scenario to gain trust.",
+    options: [
+      "Phishing",
+      "Baiting",
+      "Pretexting — fabricating a convincing scenario to manipulate the target",
+      "Watering hole attack"
+    ],
+    correct: 2,
+    explanation: "Pretexting involves creating a fabricated scenario (the 'pretext') to manipulate a target into performing an action. It's one of the most effective social engineering techniques because it exploits authority, urgency, and trust. Always verify identity through official HR or management channels."
+  },
+  {
+    category: "Cloud Security",
+    difficulty: "hard",
+    question: "A developer accidentally commits AWS access keys to a public GitHub repository. What is the immediate risk and first action?",
+    hint: "Automated scanners look for exactly this.",
+    options: [
+      "Low risk — GitHub is only visible to logged-in users",
+      "Revoke and rotate the keys immediately — automated bots scan GitHub for credentials within minutes of exposure",
+      "Delete the commit and it will be fine",
+      "Set the repository to private"
+    ],
+    correct: 1,
+    explanation: "Automated bots (and threat actors) continuously scan GitHub for leaked credentials and can exploit exposed keys within minutes. Deleting the commit does not remove it from git history. Immediately revoke the keys in AWS IAM, rotate them, audit CloudTrail for unauthorized usage, and use tools like git-secrets to prevent future leaks."
+  },
+  {
+    category: "Phishing",
+    difficulty: "hard",
+    question: "Which of the following is the most reliable way to verify the authenticity of an urgent email from a known sender asking for a sensitive action?",
+    hint: "Consider what an attacker can and cannot easily replicate.",
+    options: [
+      "Check if the email has the company logo and correct formatting",
+      "Verify the sender's email address in the 'From' field",
+      "Call or meet the sender directly using a separately verified contact method",
+      "Check if the email passed spam filters"
+    ],
+    correct: 2,
+    explanation: "Email headers can be spoofed, logos copied, and spam filters bypassed. The only reliable verification for sensitive requests is out-of-band confirmation — calling the sender on a known, separately verified number or verifying in person. This cannot be faked by an attacker who only controls email."
+  }
+];
+
+let currentQuestions = [];
+let currentIndex = 0;
+let correct = 0;
+let wrong = 0;
+let streak = 0;
+let answered = false;
+let selectedDiff = 'all';
+
+function setDiff(d) {
+  selectedDiff = d;
+  document.querySelectorAll('.diff-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+}
+
+function shuffle(arr) {
+  return [...arr].sort(() => Math.random() - 0.5);
+}
+
+function startQuiz() {
+  let pool = selectedDiff === 'all' ? ALL_QUESTIONS : ALL_QUESTIONS.filter(q => q.difficulty === selectedDiff);
+  if (pool.length === 0) pool = ALL_QUESTIONS;
+  currentQuestions = shuffle(pool).slice(0, Math.min(15, pool.length));
+  currentIndex = 0; correct = 0; wrong = 0; streak = 0; answered = false;
+  showScreen('quiz');
+  renderQuestion();
+}
+
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+}
+
+function renderQuestion() {
+  const q = currentQuestions[currentIndex];
+  const total = currentQuestions.length;
+
+  document.getElementById('q-counter').textContent = `Question ${currentIndex + 1} of ${total}`;
+  document.getElementById('q-score-inline').textContent = `Score: ${correct}`;
+  document.getElementById('progress-fill').style.width = `${((currentIndex) / total) * 100}%`;
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-wrong').textContent = wrong;
+  document.getElementById('stat-streak').textContent = streak;
+  document.getElementById('q-category').textContent = q.category;
+
+  const diffEl = document.getElementById('q-diff');
+  diffEl.textContent = q.difficulty.charAt(0).toUpperCase() + q.difficulty.slice(1);
+  diffEl.className = `q-diff ${q.difficulty}`;
+
+  document.getElementById('q-text').textContent = q.question;
+  document.getElementById('q-hint').textContent = `Hint: ${q.hint}`;
+
+  const optEl = document.getElementById('options');
+  optEl.innerHTML = '';
+  q.options.forEach((opt, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'option-btn';
+    btn.innerHTML = `<span class="opt-letter">${String.fromCharCode(65+i)}</span> ${opt}`;
+    btn.onclick = () => selectAnswer(i);
+    optEl.appendChild(btn);
+  });
+
+  document.getElementById('explanation').className = 'explanation';
+  document.getElementById('explanation').innerHTML = '';
+  document.getElementById('next-btn').disabled = true;
+  answered = false;
+}
+
+function selectAnswer(idx) {
+  if (answered) return;
+  answered = true;
+  const q = currentQuestions[currentIndex];
+  const buttons = document.querySelectorAll('.option-btn');
+
+  buttons.forEach((btn, i) => {
+    btn.disabled = true;
+    if (i === q.correct) btn.classList.add(idx === q.correct ? 'correct' : 'reveal');
+    if (i === idx && idx !== q.correct) btn.classList.add('wrong');
+  });
+
+  const expEl = document.getElementById('explanation');
+  const isCorrect = idx === q.correct;
+  if (isCorrect) {
+    correct++; streak++;
+    expEl.className = 'explanation show correct-exp';
+    expEl.innerHTML = `<div class="exp-label">✓ Correct</div>${q.explanation}`;
+  } else {
+    wrong++; streak = 0;
+    expEl.className = 'explanation show wrong-exp';
+    expEl.innerHTML = `<div class="exp-label">✗ Incorrect</div>${q.explanation}`;
+  }
+
+  document.getElementById('stat-correct').textContent = correct;
+  document.getElementById('stat-wrong').textContent = wrong;
+  document.getElementById('stat-streak').textContent = streak;
+  document.getElementById('q-score-inline').textContent = `Score: ${correct}`;
+  document.getElementById('next-btn').disabled = false;
+  document.getElementById('next-btn').textContent = currentIndex === currentQuestions.length - 1 ? 'See Results →' : 'Next →';
+}
+
+function nextQuestion() {
+  if (!answered) return;
+  currentIndex++;
+  if (currentIndex >= currentQuestions.length) {
+    showResults(); return;
+  }
+  renderQuestion();
+}
+
+function showResults() {
+  showScreen('results');
+  const total = currentQuestions.length;
+  const pct = Math.round((correct / total) * 100);
+  const scoreEl = document.getElementById('result-score');
+  scoreEl.textContent = pct + '%';
+  scoreEl.className = 'result-score ' + (pct >= 80 ? 'excellent' : pct >= 60 ? 'good' : 'poor');
+
+  let label, sub, tip;
+  if (pct >= 80) {
+    label = 'Strong Security Awareness';
+    sub = 'You demonstrated solid knowledge of social engineering threats.';
+    tip = '<strong>Keep it up:</strong> Stay updated on emerging phishing tactics (QR code phishing, AI-generated spear phishing) and consider sharing this knowledge with your team.';
+  } else if (pct >= 60) {
+    label = 'Developing Awareness';
+    sub = 'Good foundation — a few areas need reinforcement.';
+    tip = '<strong>Focus areas:</strong> Review MFA fatigue attacks, HTTPS misconceptions, and physical security (tailgating). These are common gaps in organizational security awareness.';
+  } else {
+    label = 'Awareness Training Needed';
+    sub = 'Several critical threat types need attention.';
+    tip = '<strong>Priority actions:</strong> Review phishing indicators, understand that HTTPS ≠ safe, never share passwords over phone/email, and learn your organization\'s incident reporting process.';
+  }
+
+  document.getElementById('result-label').textContent = label;
+  document.getElementById('result-sub').textContent = sub;
+  document.getElementById('result-tip').innerHTML = tip;
+  document.getElementById('r-correct').textContent = correct;
+  document.getElementById('r-wrong').textContent = wrong;
+  document.getElementById('r-total').textContent = total;
+  document.getElementById('progress-fill').style.width = '100%';
+}
+
+function restartQuiz() {
+  showScreen('start');
+}
+</script>
+</body>
+</html>
